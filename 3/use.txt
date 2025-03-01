@@ -1,0 +1,1 @@
+got c working, speed up of 30%
