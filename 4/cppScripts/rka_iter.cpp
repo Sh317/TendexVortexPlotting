@@ -171,9 +171,7 @@ struct vect {
     int its;
 };
 
-// Adaptive Runge-Kutta-Fehlberg (RK45) implementation
 vect rka_iter(double seed_x, double seed_y, double seed_z, int num_its, int icity, double ending_tolerance, double delta_0, double safety, double h0) {    
-    // Butcher tableau for RK45
     static const double a2 = 1.0 / 5.0, a3 = 3.0 / 10.0, a4 = 3.0 / 5.0, a5 = 1.0, a6 = 7.0 / 8.0;
     static const double b21 = 1.0 / 5.0;
     static const double b31 = 1.0 / 40.0, b32 = 9.0 / 40.0;
@@ -195,7 +193,7 @@ vect rka_iter(double seed_x, double seed_y, double seed_z, int num_its, int icit
         h = h0;
         sizing = true;
 
-        while (sizing) {// Butcher tableau for RK45
+        while (sizing) {
             // Compute Runge-Kutta stages
             Matrix3f E1 = f(r);
             Vector3f k1 = h * eigen_solve(E1, icity);
@@ -222,7 +220,6 @@ vect rka_iter(double seed_x, double seed_y, double seed_z, int num_its, int icit
             } else {
                 h *= safety * std::pow(std::abs(delta_0 / delta.norm()), 0.2f);
 
-                // Assuming the calculations for r_change involve variables like k1, k3, k4, k6
                 r_change = c1 * k1 + c3 * k3 + c4 * k4 + c6 * k6;
                 
                 // Set step_sizing to false
