@@ -17,3 +17,6 @@ Double and single quadrople plotting, with static and custom rotations of the se
 
 # 5
 Same as 4 but animated instead of pictures
+
+# 6
+Plots E and B field for the warp drive metric
