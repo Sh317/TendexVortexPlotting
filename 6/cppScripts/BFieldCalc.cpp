@@ -10,47 +10,49 @@ using namespace Eigen;
 double sech(double x) {
     return 1.0 / cosh(x);
 }
+double coth(double x) {
+    return 1.0 / tanh(x);
+}
 
 // Function to compute the matrix
-Matrix3f f(const Vector3f& r_V, double R, double sigma, double vX) {
-    Matrix3f B;
-    double x = r_V[0];
-    double y = r_V[1];
-    double z = r_V[2];
-    
-    double r = sqrt(x*x + y*y + z*z);
-    double factor = 4.0 / (vX * std::tanh(R * sigma));
-    
-    // Compute repeated terms
-    double sech_negR = sech((-R + r) * sigma);
-    double sech_posR = sech((R + r) * sigma);
-    double tanh_negR = tanh((-R + r) * sigma);
-    double tanh_posR = tanh((R + r) * sigma);
+Matrix3f f(const Vector3f& r_V, double R, double S, double vX) {
+    Eigen::Matrix3f B;
 
-    double common_term_1 = sigma / pow(r, 3);
-    double common_term_2 = sigma * sigma / (r * r);
+    // Precompute common
+    double x = r_V(0);
+    double y = r_V(1);
 
-    // Compute matrix elements
-    B(0, 0) = factor * ((x * x * common_term_1 * (sech_negR * sech_negR - sech_posR * sech_posR))
-                + 2 * x * x * common_term_2 * (sech_negR * sech_negR * tanh_negR - sech_posR * sech_posR * tanh_posR));
+    double x2 = x * x;
+    double y2 = y * y;
+    double rS = R * S;
+    double rS2 = rS * rS;
+    double r = std::sqrt(x2 + y2);
+    double r2 = std::pow(r, 2);
+    double r3 = std::pow(r, 3);
+    double S2 = S*S;
+    double cothRS = coth(rS);
+    double sechRS = sech(rS);
+    double tanhRS = std::tanh(rS);
 
-    B(0, 1) = factor * ((x * y * common_term_1 * (sech_negR * sech_negR - sech_posR * sech_posR))
-                + 2 * x * y * common_term_2 * (sech_negR * sech_negR * tanh_negR - sech_posR * sech_posR * tanh_posR));
+    double sechRPlus = sech(S * (R + r));
+    double sechRMinus = sech(S * (-R + r));
+    double sechRPlus2 = sechRPlus * sechRPlus;
+    double sechRMinus2 = sechRMinus * sechRMinus;
+    double tanhRPlus = std::tanh(S * (R + r));
+    double tanhRMinus = std::tanh(S * (-R + r));
 
-    B(0, 2) = factor * ((x * z * common_term_1 * (sech_negR * sech_negR - sech_posR * sech_posR))
-                + 2 * x * z * common_term_2 * (sech_negR * sech_negR * tanh_negR - sech_posR * sech_posR * tanh_posR));
-
-    B(1, 0) = B(0, 1);
-    B(1, 1) = factor * ((y * y * common_term_1 * (sech_negR * sech_negR - sech_posR * sech_posR))
-                + 2 * y * y * common_term_2 * (sech_negR * sech_negR * tanh_negR - sech_posR * sech_posR * tanh_posR));
-
-    B(1, 2) = factor * ((y * z * common_term_1 * (sech_negR * sech_negR - sech_posR * sech_posR))
-                + 2 * y * z * common_term_2 * (sech_negR * sech_negR * tanh_negR - sech_posR * sech_posR * tanh_posR));
-
-    B(2, 0) = B(0, 2);
-    B(2, 1) = B(1, 2);
-    B(2, 2) = factor * ((z * z * common_term_1 * (sech_negR * sech_negR - sech_posR * sech_posR))
-                + 2 * z * z * common_term_2 * (sech_negR * sech_negR * tanh_negR - sech_posR * sech_posR * tanh_posR));
+    // Matrix components (1st row)
+    B(0, 0) =  .25 * cothRS * ((S*x*y * (sechRMinus2 - sechRPlus2) / r3) + (2 * S2 * x * y * ((sechRMinus2 * tanhRMinus) - (sechRPlus2 * tanhRPlus)) / r2));
+    B(0, 1) = -.25 * cothRS * ((S*x2 * (sechRMinus2 - sechRPlus2) / r3)  + (2 * S2 * x2    * ((sechRMinus2 * tanhRMinus) - (sechRPlus2 * tanhRPlus)) / r2) + (S * (sechRPlus2 - sechRMinus2) / r));
+    B(0, 2) = -1.0 * B(0, 0) + .25 * cothRS * ((S*x2 * (sechRMinus2 - sechRPlus2) / r3) + (S * (sechRPlus2 - sechRMinus2) / r) + (2 * S2 * x2 * (sechRMinus2*tanhRMinus - sechRPlus2*tanhRPlus) / r2));
+    // 2nd row
+    B(1, 0) =  .25 * cothRS * ((S*y2 * (sechRMinus2 - sechRPlus2) / r3)  + (2 * S2 * y2    * ((sechRMinus2 * tanhRMinus) - (sechRPlus2 * tanhRPlus)) / r2) + (S * (sechRPlus2 - sechRMinus2) / r));
+    B(1, 1) = -1.0 * B(0, 0);
+    B(1, 2) = -1.0 * B(1, 1) - .25 * cothRS * ((S*y2 * (sechRMinus2 - sechRPlus2) / r3) + S* (sechRPlus2 - sechRMinus2) / r + 2 * S2 * y2 * ((sechRMinus2 * tanhRMinus) - (sechRPlus2 * tanhRPlus)) / r2);
+    // 3rd row
+    B(2,0) = -.25 * cothRS * (S * (sechRPlus2 - sechRMinus2) / r);
+    B(2,1) = -1.0 * B(2,0);
+    B(2,2) = 0;
 
     return B;
 }
@@ -81,6 +83,11 @@ double eigen_solve_val(Matrix3f E_temp, int icity) {
         result = 0.0;
     } else {
         result = eigenvalues(maxIndex).real();
+    }
+
+    // Test for trace free
+    if ((eigenvalues(0) + eigenvalues(1) + eigenvalues(2)).real() > 0.00001){
+        std::cout << eigenvalues(0) + eigenvalues(1) + eigenvalues(2) << '\n';
     }
 
     return result;

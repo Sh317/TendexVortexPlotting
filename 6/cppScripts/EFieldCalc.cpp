@@ -57,6 +57,11 @@ double eigen_solve_val(Matrix3f E_temp, int icity) {
         result = eigenvalues(maxIndex).real();
     }
 
+    // Test for trace free
+    if ((eigenvalues(0) + eigenvalues(1) + eigenvalues(2)).real() > 0.00001){
+        std::cout << eigenvalues(0) + eigenvalues(1) + eigenvalues(2) << '\n';
+    }
+
     return result;
     }
 

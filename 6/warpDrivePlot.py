@@ -19,11 +19,11 @@ class vect(Structure):
 title, x0, y0, z0 = seed(4) # 0: Plane 1: Circular 2: Spherical 3: Helical 4: Random
 curve = {'x':[],'y':[],'z':[],'f':[],'m':[],'c':[],'lg':[]}
 seeds = len(x0)
-num_its = 500
+num_its = 50
 delta_0 = 10e-2
 h0 = 10e-2
 safety = .9
-ending_tolerance = .1
+ending_tolerance = .5
 pos_color = 'red'
 neg_color = 'blue'
 icity = 1
@@ -32,7 +32,7 @@ sigma = 1
 vX = 1
 
 # load C++
-if False:
+if True:
     rka_iter = CDLL("./cppScripts/EFieldCalc").rka_iter
 else:
     rka_iter = CDLL("./cppScripts/BFieldCalc").rka_iter
@@ -48,14 +48,14 @@ pos_cmap = mcolors.LinearSegmentedColormap.from_list('pos', [('lightsteelblue'),
 neg_cmap = mcolors.LinearSegmentedColormap.from_list('pos', [('mistyrose'), ('darkred')], N=100)
 blank_pos_cmap = mcolors.LinearSegmentedColormap.from_list('pos', [('blue'), ('blue')], N=1)
 blank_neg_cmap = mcolors.LinearSegmentedColormap.from_list('pos', [('red'), ('red')], N=1)
-pos_norm = mcolors.LogNorm(vmin=10e-3, vmax=10e2)
-neg_norm = mcolors.LogNorm(vmin=10e-3, vmax=10e2)
+pos_norm = mcolors.LogNorm(vmin=10e-5, vmax=10e0)
+neg_norm = mcolors.LogNorm(vmin=10e-5, vmax=10e0)
 width = False
 color = True
 
 
 for i in range(seeds):
-    for icity in [-1]:
+    for icity in [1,-1]:
         # Starting point of each field line
         x, y, z = x0[i], y0[i], z0[i]
     
@@ -80,13 +80,13 @@ for i in range(seeds):
             elif color:
                 lc = colorline(neg_ax, x, y, m, norm = pos_norm, cmap='jet')
 
-print(dt.now() - start)
+print(dt.now() - start) 
 
 if color:
     pos_fig.colorbar(cm.ScalarMappable(cmap='jet', norm = pos_norm), ax=pos_ax)
     neg_fig.colorbar(cm.ScalarMappable(cmap='jet', norm = neg_norm), ax=neg_ax)
 
-lim = 2
+lim = 50
 
 pos_ax.set_xlim(-lim,lim)
 pos_ax.set_ylim(-lim,lim)
