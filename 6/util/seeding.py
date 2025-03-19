@@ -94,7 +94,7 @@ def random_seeds(seeds, distance):
     for i in range(seeds//4):
         x = np.random.random() * distance
         y = np.random.random() * distance
-        z = 0
+        z = np.random.random() * distance
 
         # Quadrant 1
         x_list += [x]
@@ -167,21 +167,20 @@ def rect(xseeds, radius):
 
     return x0, y0, z0
         
-def seed(seed_type):
+def seed(seed_type,distance):
     rotate = False
     if seed_type == 0: # Plane
             
         xSeeds = 11
         ySeeds = 11
         zSeeds = 1
-        seed_distance = 10 #Spacing between seeds
 
         if rotate:
-            title = "Plane_x%sy%sz%s_Spaced:%s_RKA" % (xSeeds, ySeeds, zSeeds, seed_distance)
+            title = "Plane_x%sy%sz%s_Spaced:%s_RKA" % (xSeeds, ySeeds, zSeeds, distance)
         else:
-            title = "Rot_Plane_x%sy%sz%s_Spaced:%s_RKA" % (xSeeds, ySeeds, zSeeds, seed_distance)
+            title = "Rot_Plane_x%sy%sz%s_Spaced:%s_RKA" % (xSeeds, ySeeds, zSeeds, distance)
 
-        x0, y0, z0 = plane_seeds(xSeeds, ySeeds, zSeeds, seed_distance)
+        x0, y0, z0 = plane_seeds(xSeeds, ySeeds, zSeeds, distance)
     elif seed_type == 1: # Circular
         starting_radius = 2
         radius_steps = 2
@@ -214,7 +213,7 @@ def seed(seed_type):
 
         x0, y0, z0 = helical_seeds(start_rad, spacing, seeds)
     elif seed_type == 4:
-        x0, y0, z0 = random_seeds(600, 40)
+        x0, y0, z0 = random_seeds(100, distance)
         title = "Random_RKA"
     elif seed_type == 5:
         x0, y0, z0 = rect(10,5)

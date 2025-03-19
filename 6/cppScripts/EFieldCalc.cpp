@@ -6,26 +6,31 @@
 using namespace std;
 using namespace Eigen;
 
-Matrix3f f(const Vector3f& r_V, double R, double sigma, double vX) {
+// Define hyperbolic functions
+double sech(double x) {
+    return 1.0 / cosh(x);
+}
+double coth(double x) {
+    return 1.0 / tanh(x);
+}
+
+Matrix3f f(const Vector3f& r_V, double R, double S, double vX) {
     Matrix3f E;
     double x = r_V[0];
     double y = r_V[1];
     double z = r_V[2];
-    double r = sqrt(x*x + y*y + z*z);
+    double r = sqrt(z*z + y*y + x*x);
     
-    double coth = 1/(std::tanh(R*sigma));
-    double pos_sec = (1 / std::cosh(R + r*sigma));
-    double neg_sec = (1 / std::cosh(-R + r*sigma));
+    double DY2 = -.5 * coth(R*S) * (((S*y * sech(S*(r+R))) * (S*y * sech(S*(r+R)))) - ((S*y * sech(S*(r-R))) * (S*y * sech(S*(r-R))))) / r;
+    double DZ2 = -.5 * coth(R*S) * (((S*z * sech(S*(r+R))) * (S*z * sech(S*(r+R)))) - ((S*z * sech(S*(r-R))) * (S*z * sech(S*(r-R))))) / r;
+    double TF = (1.0/6.0) * (DY2+DZ2);
 
-    double partial_const = -.5 * coth*((sigma * pos_sec * pos_sec / r) - (sigma * neg_sec * neg_sec / r));
+    E << (-.25 * (DY2 + DZ2)) + TF, 0.0, 0.0,
+         0.0, (-.25 * DY2) + TF, -.25 * DY2 * DZ2,
+         0.0, -.25 * DY2 * DZ2, (-.25 * DZ2) + TF;
 
-    double Dx = x * partial_const;
-    double Dy = y * partial_const;
-    double Dz = z * partial_const;
+    //std::cout << E << " " << DY2 << " " << DZ2 << " " << TF << "\n";
 
-    E << Dx * Dy - .25 * (Dx + Dy) * (Dx + Dy) - .25 * (Dx) * (Dx), -.25 * Dx * Dy, .5 * Dx * Dy - Dy * (Dx + Dy),
-         -.25 * Dx * Dy, Dx * Dy - .25 * (Dx + Dy) * (Dx + Dy) - .25 * (Dy) * (Dy), .5 * Dx * Dy - Dx * (Dx + Dy),
-         .5 * Dx * Dy - Dy * (Dx + Dy), .5 * Dx * Dy - Dx * (Dx + Dy), -(Dx) * (Dx) - (Dy) * (Dy);
     return E;
 }
 
@@ -50,16 +55,23 @@ double eigen_solve_val(Matrix3f E_temp, int icity) {
             
         }
     }
+
+    std::cout << eigenvalues << "\n";
+    //std::cout << E_temp << "\n";
+
     double result;
     if (maxIndex < 0) {
         result = 0.0;
     } else {
-        result = eigenvalues(maxIndex).real();
+        //result = eigenvalues(maxIndex).real();
     }
 
     // Test for trace free
-    if ((eigenvalues(0) + eigenvalues(1) + eigenvalues(2)).real() > 0.00001){
+    if (std::abs((eigenvalues(0) + eigenvalues(1) + eigenvalues(2)).real()) > 0.00001){
+        std::cout << eigenvalues << '\n';
+        std::cout << '\n';
         std::cout << eigenvalues(0) + eigenvalues(1) + eigenvalues(2) << '\n';
+        std::cout << "----" << '\n';
     }
 
     return result;
@@ -85,15 +97,22 @@ Vector3f eigen_solve(Matrix3f E_temp, int icity) {
             maxIndex = i;
         }
     }
+
+    
+
+
     // Convert complex eigenvector to real vector (assuming it's real-valued)
     if (maxIndex < 0) {
         result << 0.0,0.0,0.0;
         return result;
     } 
+    else {
+        //std::cout << maxIndex << "\n";
+    }
     
     result = eigenvectors.col(maxIndex).real();
     
-    return result / result.norm();
+    return result;
 }
 
 extern "C" {
@@ -162,11 +181,13 @@ vect rka_iter(double R, double sigma, double vX, double seed_x, double seed_y, d
             }
         }
 
+
         //std::cout << r_change(0) << ' ' << r_change(1) << " " << '\n';
         
         // Account for sign missmatch
         double r_mag = r_change.norm();
         double dot = r_past.dot(r_change/r_mag);
+        double val = eigen_solve_val(f(r, R, sigma, vX), icity);
 
         if (dot < -.95) {
             r_change *= -1;
@@ -174,7 +195,10 @@ vect rka_iter(double R, double sigma, double vX, double seed_x, double seed_y, d
 
         r += r_change;
         r_past = r_change / r_mag;
-        double val = eigen_solve_val(f(r, R, sigma, vX), icity);
+
+        //std::cout << r << "\n";
+        
+        //std::cout << "________" << "\n";
 
         r_change_vect.x[i] = r(0);
         r_change_vect.y[i] = r(1);

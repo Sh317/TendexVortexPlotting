@@ -23,15 +23,15 @@ curve = {'x':[],'y':[],'z':[],'f':[],'m':[],'c':[],'lg':[]}
 #z0 = [0]
 
 seeds = len(x0)
-num_its = 1000
-delta_0 = 10e-4
+num_its = 2000
+delta_0 = 10e-3
 h0 = 10e-3
 safety = .9
 ending_tolerance = 1.0
 pos_color = 'red'
 neg_color = 'blue'
 icity = 0
-sepX = .5
+sepX = 0
 sepY = .1
 
 # load C++
@@ -55,7 +55,7 @@ color = True
 
 
 for i in range(seeds):
-    for icity in [-1]:
+    for icity in [1,-1]:
         # Starting point of each field line
         x, y, z = x0[i], y0[i], z0[i]
     
@@ -96,5 +96,5 @@ neg_ax.set_ylim(-lim,lim)
 neg_ax.set_title('2 Dipole, x sep: %s y sep: %s, 180 degree difference' %(sepX, sepY))
 
 
-#pos_fig.savefig('./plots/TESTNoColor180Dpos_double_' + title + '.png', dpi=500)
-neg_fig.savefig('./plots/TESTNoColor180Dneg_double_' + title + '.png', dpi=500)
+pos_fig.savefig('pos.png', dpi=500)
+neg_fig.savefig('neg.png', dpi=500)

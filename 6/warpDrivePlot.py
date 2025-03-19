@@ -16,14 +16,17 @@ class vect(Structure):
     _fields_ = [('x', c_double*10000), ('y', c_double*10000), ('z', c_double*10000), ('m', c_double*10000), ('its', c_int)]
 
 #Value setup
-title, x0, y0, z0 = seed(4) # 0: Plane 1: Circular 2: Spherical 3: Helical 4: Random
+title, x0, y0, z0 = seed(4,1) # 0: Plane 1: Circular 2: Spherical 3: Helical 4: Random
+#x0 = [.5]
+#y0 = [.5]
+#z0 = [.1]
 curve = {'x':[],'y':[],'z':[],'f':[],'m':[],'c':[],'lg':[]}
 seeds = len(x0)
 num_its = 50
 delta_0 = 10e-2
 h0 = 10e-2
 safety = .9
-ending_tolerance = .5
+ending_tolerance = .01
 pos_color = 'red'
 neg_color = 'blue'
 icity = 1
@@ -53,9 +56,11 @@ neg_norm = mcolors.LogNorm(vmin=10e-5, vmax=10e0)
 width = False
 color = True
 
+ax = plt.figure().add_subplot(projection='3d')
 
 for i in range(seeds):
-    for icity in [1,-1]:
+    #print(i)
+    for icity in [1]:
         # Starting point of each field line
         x, y, z = x0[i], y0[i], z0[i]
     
@@ -68,6 +73,7 @@ for i in range(seeds):
         #print(min(m))
         #print(max(m))
         #print()
+        ax.plot(x,y,z)
 
         if icity == 1:
             if width:
@@ -86,7 +92,7 @@ if color:
     pos_fig.colorbar(cm.ScalarMappable(cmap='jet', norm = pos_norm), ax=pos_ax)
     neg_fig.colorbar(cm.ScalarMappable(cmap='jet', norm = neg_norm), ax=neg_ax)
 
-lim = 50
+lim = 10
 
 pos_ax.set_xlim(-lim,lim)
 pos_ax.set_ylim(-lim,lim)
@@ -95,3 +101,5 @@ neg_ax.set_ylim(-lim,lim)
 
 pos_fig.savefig('pos.png', dpi=300)
 neg_fig.savefig('neg.png', dpi=300)
+
+plt.show()

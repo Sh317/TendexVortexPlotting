@@ -66,30 +66,35 @@ Matrix3f f(const Vector3f& r_V, double sepX, double sepY) {
             0.0, 0.0, 0.0;
     
 
-    return ((-6 * e01) + (60 * e02 + 15 * e03) / (r02) + (-105 * e04 / (r02*r02))) + ((-6 * e11) + (60 * e12 + 15 * e13) / (r12) + (-105 * e14 / (r12*r12)));
+    return ((-6 * e01) + (60 * e02 + 15 * e03) / (r02) + (-105 * e04 / (r02*r02))) + 
+           ((-6 * e11) + (60 * e12 + 15 * e13) / (r12) + (-105 * e14 / (r12*r12)));
 
     
 }
 
-double eigen_solve_val(Matrix3f E_temp, int icity) {
+double eigen_solve_val(Matrix3f E_temp, int icity, Vector3f r) {
     // Compute eigenvalues and eigenvectors
     EigenSolver<Matrix3f> solver(E_temp);
+    double x = r(0);
     
     Vector3cf eigenvalues = solver.eigenvalues();   // Complex eigenvalues
 
     double maxEigenvalue = -1e6; // Large negative value for initialization
     int maxIndex = -1;
 
+    if (x < 0) {
+        icity *= -1.0;
+    }
+
     // Loop through eigenvalues to find the largest with the same sign as `icity`
     for (int i = 0; i < 3; ++i) {
         double realVal = eigenvalues[i].real(); // Extract real part of eigenvalue
         
         if (icity * realVal > 0 && realVal * icity > maxEigenvalue) {
-            
-            maxEigenvalue = realVal * icity;
+            maxEigenvalue = realVal * icity * -1;
             maxIndex = i;
-            
-        }
+        
+    }
     }
     double result;
     if (maxIndex < 0) {
@@ -99,31 +104,37 @@ double eigen_solve_val(Matrix3f E_temp, int icity) {
     }
 
     //std::cout << solver.eigenvectors() << "\n";
-    //std::cout << E_temp << "\n";
+    //std::cout << eigenvalues << "\n";
     //std::cout << maxIndex << "\n";
+    //std::cout << "\n";
 
     return result;
     }
 
 // Function to get the eigenvector corresponding to the largest eigenvalue with the given sign
-Vector3f eigen_solve(Matrix3f E_temp, int icity) {
+Vector3f eigen_solve(Matrix3f E_temp, int icity, Vector3f r) {
     // Compute eigenvalues and eigenvectors
     EigenSolver<Matrix3f> solver(E_temp);
     Vector3cf eigenvalues = solver.eigenvalues();   // Complex eigenvalues
     Matrix3cf eigenvectors = solver.eigenvectors(); // Corresponding eigenvectors
     Vector3f result;
+    double x = r(0);
 
     double maxEigenvalue = -1e6; // Large negative value for initialization
     int maxIndex = -1;
+    if (x < 0) {
+        icity *= -1.0;
+    }
 
     // Loop through eigenvalues to find the largest with the same sign as `icity`
     for (int i = 0; i < 3; ++i) {
         double realVal = eigenvalues[i].real(); // Extract real part of eigenvalue
         
         if (icity * realVal > 0 && realVal * icity > maxEigenvalue) {
-            maxEigenvalue = realVal * icity;
+            maxEigenvalue = realVal * icity * -1;
             maxIndex = i;
-        }
+           
+    }
     }
     // Convert complex eigenvector to real vector (assuming it's real-valued)
     if (maxIndex < 0) {
@@ -172,22 +183,22 @@ vect rka_iter_double(double sepX, double sepY, double seed_x, double seed_y, dou
         while (sizing) {// Butcher tableau for RK45
             // Compute Runge-Kutta stages
             Matrix3f E1 = f(r, sepX, sepY);
-            Vector3f k1 = h * eigen_solve(E1, icity);
+            Vector3f k1 = h * eigen_solve(E1, icity, r);
 
             Matrix3f E2 = f(r + b21 * k1, sepX, sepY);
-            Vector3f k2 = h * eigen_solve(E2, icity);
+            Vector3f k2 = h * eigen_solve(E2, icity, r);
 
             Matrix3f E3 = f(r + b31 * k1 + b32 * k2, sepX, sepY);
-            Vector3f k3 = h * eigen_solve(E3, icity);
+            Vector3f k3 = h * eigen_solve(E3, icity, r);
             
             Matrix3f E4 = f(r + b41 * k1 + b42 * k2 + b43 * k3, sepX, sepY);
-            Vector3f k4 = h * eigen_solve(E4, icity);
+            Vector3f k4 = h * eigen_solve(E4, icity, r);
 
             Matrix3f E5 = f(r + b51 * k1 + b52 * k2 + b53 * k3 + b54 * k4, sepX, sepY);
-            Vector3f k5 = h * eigen_solve(E5, icity);
+            Vector3f k5 = h * eigen_solve(E5, icity, r);
             
             Matrix3f E6 = f(r + b61 * k1 + b62 * k2 + b63 * k3 + b64 * k4 + b65 * k5, sepX, sepY);
-            Vector3f k6 = h * eigen_solve(E6, icity);
+            Vector3f k6 = h * eigen_solve(E6, icity, r);
 
             Vector3f delta = cd1 * k1 + cd3 * k3 + cd4 * k4 + cd5 * k5 + cd6 * k6;
 
@@ -217,13 +228,14 @@ vect rka_iter_double(double sepX, double sepY, double seed_x, double seed_y, dou
         double r_mag = r_change.norm();
         double dot = r_past.dot(r_change/r_mag);
 
-        if (dot < -.75) {
+        if (dot < -.9) {
             r_change *= -1;
         }
 
+        double val = eigen_solve_val(f(r, sepX, sepY), icity, r);
         r += r_change;
         r_past = r_change / r_mag;
-        double val = eigen_solve_val(f(r, sepX, sepY), icity);
+        
         //std::cout << r << "\n";
 
         r_change_vect.x[i] = r(0);
