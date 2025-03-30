@@ -20,11 +20,13 @@ Matrix3f f2(const Vector3f& r_V, double sepX, double sepY, double sinT, double c
     double x01 = r_V(1) + sepY;
     double x02 = r_V(2);
     
-    double x10 = r_V(0);
-    double x11 = r_V(1);
+    double x10 = r_V(0) - sepX;
+    double x11 = r_V(1) - sepY;
     double x12 = r_V(2);
     double r02 = (x00 * x00 + x01 * x01);
+    double r05 = std::pow(x00 * x00 + x01 * x01, 2.5);
     double r12 = (x10 * x10 + x11 * x11);
+    double r15 = std::pow(x10 * x10 + x11 * x11, 2.5);
     
     double aI = 1.0;
     double IpqXpXq0 = ((x00 * x00 - x01 * x01));
@@ -69,7 +71,8 @@ Matrix3f f2(const Vector3f& r_V, double sepX, double sepY, double sinT, double c
             0.0, 0.0, 0.0;
     
 
-    return ((-6 * e01) + (60 * e02 + 15 * e03) / (r02) + (-105 * e04 / (r02*r02))) + ((-6 * e11) + (60 * e12 + 15 * e13) / (r12) + (-105 * e14 / (r12*r12)));
+            return ((-6 * e01) / (r05) + (60 * e02 + 15 * e03) / (r05 * r02) + (-105 * e04) / (r05 * r02 * r02)) +
+                   ((-6 * e01) / (r15) + (60 * e02 + 15 * e03) / (r15 * r12) + (-105 * e04) / (r15 * r12 * r12));
 
     
 }
@@ -220,7 +223,7 @@ vect rka_iter_double(double t, double sepX, double sepY, double seed_x, double s
         double x = r(0);
         double y = r(1);
 
-        std::cout << x << " " << y << " " << dot << "\n";
+        //std::cout << x << " " << y << " " << dot << "\n";
 
         r_change_vect.x[i] = x;
         r_change_vect.y[i] = y;

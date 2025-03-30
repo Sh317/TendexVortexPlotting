@@ -167,7 +167,7 @@ def rect(xseeds, radius):
 
     return x0, y0, z0
         
-def seed(seed_type):
+def seed(seed_type,distance):
     rotate = False
     if seed_type == 0: # Plane
             
@@ -214,7 +214,7 @@ def seed(seed_type):
 
         x0, y0, z0 = helical_seeds(start_rad, spacing, seeds)
     elif seed_type == 4:
-        x0, y0, z0 = random_seeds(300, 150)
+        x0, y0, z0 = random_seeds(300, distance)
         title = "Random_RKA"
     elif seed_type == 5:
         x0, y0, z0 = rect(10,5)

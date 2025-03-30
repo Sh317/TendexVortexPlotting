@@ -12,19 +12,24 @@ from util.seeding import seed
 start = dt.now()
 
 class vect(Structure):
-    _fields_ = [('x', c_double*10000), ('y', c_double*10000), ('z', c_double*10000), ('m', c_double*10000), ('its', c_int)]
+    _fields_ = [('x', c_double*10000), 
+                ('y', c_double*10000), 
+                ('z', c_double*10000), 
+                ('m', c_double*10000), 
+                ('its', c_int)]
 
 #Value setup
-title, x0, y0, z0 = seed(4) # 0: Plane 1: Circular 2: Spherical 3: Helical 4: Random
+title, x0, y0, z0 = seed(4,10) # 0: Plane 1: Circular 2: Spherical 3: Helical 4: Random
 curve = {'x':[],'y':[],'z':[],'f':[],'m':[],'c':[],'lg':[]}
 
-#x0 = [-40]
-#y0 = [40]
-#z0 = [0]
+#x0 = [-40.0]
+#y0 = [-30.0]
+#z0 = [0.0]
+lim = 15
 
 seeds = len(x0)
 num_its = 2000
-delta_0 = 10e-3
+delta_0 = 10e-5
 h0 = 10e-3
 safety = .9
 ending_tolerance = 1.0
@@ -48,8 +53,8 @@ pos_cmap = mcolors.LinearSegmentedColormap.from_list('pos', [('lightsteelblue'),
 neg_cmap = mcolors.LinearSegmentedColormap.from_list('pos', [('mistyrose'), ('darkred')], N=100)
 blank_pos_cmap = mcolors.LinearSegmentedColormap.from_list('pos', [('blue'), ('blue')], N=1)
 blank_neg_cmap = mcolors.LinearSegmentedColormap.from_list('pos', [('red'), ('red')], N=1)
-pos_norm = mcolors.Normalize(vmin=0, vmax=80)
-neg_norm = mcolors.Normalize(vmin=0, vmax=80)
+pos_norm = mcolors.LogNorm(vmin=10e-5, vmax=10e2)
+neg_norm = mcolors.LogNorm(vmin=10e-5, vmax=10e2)
 width = False
 color = True
 
@@ -86,15 +91,16 @@ print(dt.now() - start)
 if color:
     pos_fig.colorbar(cm.ScalarMappable(cmap='jet', norm = pos_norm), ax=pos_ax, label = 'pos eigenvalue')
     neg_fig.colorbar(cm.ScalarMappable(cmap='jet', norm = neg_norm), ax=neg_ax, label = 'neg eigenvalue * -1')
-lim = 200
 pos_ax.scatter([sepX,-sepX], [sepY,-sepY])
 pos_ax.set_xlim(-lim,lim)
 pos_ax.set_ylim(-lim,lim)
+pos_ax.set_title('Octopole. Positive EVals. x sep: %s y sep: %s, 90 degree difference' %(sepX, sepY))
+
 neg_ax.scatter([sepX,-sepX], [sepY,-sepY])
 neg_ax.set_xlim(-lim,lim)
 neg_ax.set_ylim(-lim,lim)
-neg_ax.set_title('2 Dipole, x sep: %s y sep: %s, 180 degree difference' %(sepX, sepY))
+neg_ax.set_title('Octopole. Negative EVals. x sep: %s y sep: %s, 90 degree difference' %(sepX, sepY))
 
 
-pos_fig.savefig('pos.png', dpi=500)
-neg_fig.savefig('neg.png', dpi=500)
+pos_fig.savefig('plots/octopole/octopolePos.png', dpi=500)
+neg_fig.savefig('plots/octopole/octopoleNeg.png', dpi=500)
