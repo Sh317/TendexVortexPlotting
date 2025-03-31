@@ -214,7 +214,7 @@ def seed(seed_type,distance):
 
         x0, y0, z0 = helical_seeds(start_rad, spacing, seeds)
     elif seed_type == 4:
-        x0, y0, z0 = random_seeds(300, distance)
+        x0, y0, z0 = random_seeds(600, distance)
         title = "Random_RKA"
     elif seed_type == 5:
         x0, y0, z0 = rect(10,5)

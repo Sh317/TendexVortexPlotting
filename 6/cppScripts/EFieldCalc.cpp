@@ -19,17 +19,19 @@ Matrix3f f(const Vector3f& r_V, double R, double S, double vX) {
     double x = r_V[0];
     double y = r_V[1];
     double z = r_V[2];
-    double r = sqrt(z*z + y*y + x*x);
+    double r = sqrt((z*z) + (y*y) + (x*x));
     
-    double DY2 = -.5 * coth(R*S) * (((S*y * sech(S*(r+R))) * (S*y * sech(S*(r+R)))) - ((S*y * sech(S*(r-R))) * (S*y * sech(S*(r-R))))) / r;
-    double DZ2 = -.5 * coth(R*S) * (((S*z * sech(S*(r+R))) * (S*z * sech(S*(r+R)))) - ((S*z * sech(S*(r-R))) * (S*z * sech(S*(r-R))))) / r;
+    double DY = ((S*y * sech(S*(R+r)) * sech(S*(R+r))) - (S*y * sech(S*(R-r)) * sech(S*(R-r)))) / (r * tanh(R*S) * -2.0);
+    double DZ = ((S*z * sech(S*(R+r)) * sech(S*(R+r))) - (S*z * sech(S*(R-r)) * sech(S*(R-r)))) / (r * tanh(R*S) * -2.0);
+    double DY2 = DY * DY;
+    double DZ2 = DZ * DZ;
     double TF = (1.0/6.0) * (DY2+DZ2);
 
     E << (-.25 * (DY2 + DZ2)) + TF, 0.0, 0.0,
-         0.0, (-.25 * DY2) + TF, -.25 * DY2 * DZ2,
-         0.0, -.25 * DY2 * DZ2, (-.25 * DZ2) + TF;
+         0.0, (-.25 * DY2) + TF, -.25 * DY * DZ,
+         0.0, -.25 * DY * DZ, (-.25 * DZ2) + TF;
 
-    //std::cout << E << " " << DY2 << " " << DZ2 << " " << TF << "\n";
+    //std::cout << E << " \n \n" << DY2 << " \n \n" << DZ2 << " \n \n" << r_V << '\n' << ((S*y * sech(S*(r+R))) * (S*y * sech(S*(r+R)))) << "\n------------------\n";
 
     return E;
 }
@@ -56,14 +58,14 @@ double eigen_solve_val(Matrix3f E_temp, int icity) {
         }
     }
 
-    std::cout << eigenvalues << "\n";
+    
     //std::cout << E_temp << "\n";
 
     double result;
     if (maxIndex < 0) {
         result = 0.0;
     } else {
-        //result = eigenvalues(maxIndex).real();
+        result = eigenvalues(maxIndex).real();
     }
 
     // Test for trace free
@@ -73,7 +75,6 @@ double eigen_solve_val(Matrix3f E_temp, int icity) {
         std::cout << eigenvalues(0) + eigenvalues(1) + eigenvalues(2) << '\n';
         std::cout << "----" << '\n';
     }
-
     return result;
     }
 
@@ -96,10 +97,13 @@ Vector3f eigen_solve(Matrix3f E_temp, int icity) {
             maxEigenvalue = realVal * icity;
             maxIndex = i;
         }
+        if (realVal > 0 && realVal > maxEigenvalue) {
+            maxEigenvalue = realVal * icity;
+            maxIndex = i;
+        }
     }
 
-    
-
+    //std::cout << eigenvalues << "\n" << maxIndex << "\n---------------------\n";
 
     // Convert complex eigenvector to real vector (assuming it's real-valued)
     if (maxIndex < 0) {
@@ -130,10 +134,10 @@ vect rka_iter(double R, double sigma, double vX, double seed_x, double seed_y, d
     static const double b21 = 1.0 / 5.0;
     static const double b31 = 1.0 / 40.0, b32 = 9.0 / 40.0;
     static const double b41 = 3.0 / 10.0, b42 = -9.0 / 10.0, b43 = 6.0 / 5.0;
-    static const double b51 = -11.0 / 54.0, b52 = -5.0/2.0, b53 = -70.0 / 27.0, b54 = -35.0 / 27.0;
+    static const double b51 = -11.0 / 54.0, b52 = 5.0/2.0, b53 = -70.0 / 27.0, b54 = 35.0 / 27.0;
     static const double b61 = 1631.0 / 55296.0, b62 = 175.0 / 512.0, b63 = 575.0 / 13824.0, b64 = 44275.0 / 110592.0, b65 = 253.0 / 4096.0;
-    static const double c1 = 37.0 / 378.0, c3 = 250.0 / 621.0, c4 = 125.0 / 621.0, c6 = 512.0 / 1771.0;
-    static const double cd1 = 37.0 / 378.0 - 2825.0 / 27648.0, cd3 = 250.0 / 621.0 - 18575.0 / 48384.0, cd4 = 125.0 / 621.0 - 13525.0 / 55296.0, cd5 = -277.0 / 14336.0, cd6 = 512.0 / 1771.0 - 1.0 / 4.0;
+    static const double c1 = 37.0 / 378.0, c3 = 250.0 / 621.0, c4 = 125.0 / 594.0, c6 = 512.0 / 1771.0;
+    static const double cd1 = 37.0 / 378.0 - 2825.0 / 27648.0, cd3 = 250.0 / 621.0 - 18575.0 / 48384.0, cd4 = 125.0 / 594.0 - 13525.0 / 55296.0, cd5 = -277.0 / 14336.0, cd6 = 512.0 / 1771.0 - 1.0 / 4.0;
     bool sizing = true;
     vect r_change_vect;
 
@@ -190,6 +194,7 @@ vect rka_iter(double R, double sigma, double vX, double seed_x, double seed_y, d
         double val = eigen_solve_val(f(r, R, sigma, vX), icity);
 
         if (dot < -.95) {
+            //std::cout << "WANTS \n";
             r_change *= -1;
         }
 

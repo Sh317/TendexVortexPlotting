@@ -16,22 +16,22 @@ class vect(Structure):
     _fields_ = [('x', c_double*10000), ('y', c_double*10000), ('z', c_double*10000), ('m', c_double*10000), ('its', c_int)]
 
 #Value setup
-title, x0, y0, z0 = seed(4,1) # 0: Plane 1: Circular 2: Spherical 3: Helical 4: Random
-#x0 = [.5]
-#y0 = [.5]
-#z0 = [.1]
+title, x0, y0, z0 = seed(0,3) # 0: Plane 1: Circular 2: Spherical 3: Helical 4: Random
+#x0 = [1]
+#y0 = [0.1]
+#z0 = [0.1]
 curve = {'x':[],'y':[],'z':[],'f':[],'m':[],'c':[],'lg':[]}
 seeds = len(x0)
-num_its = 50
-delta_0 = 10e-2
-h0 = 10e-2
+num_its = 200
+delta_0 = 10e-5
+h0 = 10e-3
 safety = .9
 ending_tolerance = .01
 pos_color = 'red'
 neg_color = 'blue'
 icity = 1
 R = 1
-sigma = 1
+sigma = 8
 vX = 1
 
 # load C++
@@ -43,7 +43,8 @@ rka_iter.argtypes = [c_double, c_double, c_double, c_double, c_double, c_double,
 rka_iter.restype = vect
 
 # Start plot
-pos_fig, pos_ax = plt.subplots(1)
+pos_fig = plt.figure(1)
+pos_ax = pos_fig.add_subplot(projection='3d')
 neg_fig, neg_ax = plt.subplots(1)
 
 #Color maps
@@ -55,8 +56,6 @@ pos_norm = mcolors.LogNorm(vmin=10e-5, vmax=10e0)
 neg_norm = mcolors.LogNorm(vmin=10e-5, vmax=10e0)
 width = False
 color = True
-
-ax = plt.figure().add_subplot(projection='3d')
 
 for i in range(seeds):
     #print(i)
@@ -73,13 +72,12 @@ for i in range(seeds):
         #print(min(m))
         #print(max(m))
         #print()
-        ax.plot(x,y,z)
 
         if icity == 1:
             if width:
-                lc = colorline(pos_ax, x, y, m, norm = pos_norm, widths = m, cmap=blank_pos_cmap)
+                lc = colorline(pos_ax, x, y, m, norm = pos_norm, widths = m, cmap=blank_pos_cmap, zR = z)
             elif color:
-                lc = colorline(pos_ax, x, y, m, norm = pos_norm, cmap='jet')
+                lc = colorline(pos_ax, x, y, m, norm = pos_norm, cmap='jet', zR = z)
         else:
             if width:
                 lc = colorline(neg_ax, x, y, m, norm = pos_norm, widths = m, cmap=blank_neg_cmap)
@@ -92,10 +90,12 @@ if color:
     pos_fig.colorbar(cm.ScalarMappable(cmap='jet', norm = pos_norm), ax=pos_ax)
     neg_fig.colorbar(cm.ScalarMappable(cmap='jet', norm = neg_norm), ax=neg_ax)
 
-lim = 10
+lim = 1.5
 
 pos_ax.set_xlim(-lim,lim)
 pos_ax.set_ylim(-lim,lim)
+pos_ax.set_zlim(-lim,lim)
+
 neg_ax.set_xlim(-lim,lim)
 neg_ax.set_ylim(-lim,lim)
 

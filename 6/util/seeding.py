@@ -13,9 +13,9 @@ def plane_seeds(xSeeds, ySeeds, zSeeds, seed_distance): #0
         for y in range(ySeeds):
             for z in range(zSeeds):
                 if (x - totX_dist) * seed_distance != 0 or (y - totY_dist) * seed_distance != 0 or (z - totZ_dist) * seed_distance != 0:
-                    x0 += [(x - totX_dist) * seed_distance]
-                    y0 += [(y - totY_dist) * seed_distance]
-                    z0 += [(z - totZ_dist) * seed_distance]
+                    x0 += [(x - totX_dist) * (seed_distance / xSeeds)]
+                    y0 += [(y - totY_dist) * (seed_distance / ySeeds)]
+                    z0 += [(z - totZ_dist) * (seed_distance / zSeeds)]
 
     return x0, y0, z0
 
@@ -172,8 +172,8 @@ def seed(seed_type,distance):
     if seed_type == 0: # Plane
             
         xSeeds = 11
-        ySeeds = 11
-        zSeeds = 1
+        ySeeds = 1
+        zSeeds = 7
 
         if rotate:
             title = "Plane_x%sy%sz%s_Spaced:%s_RKA" % (xSeeds, ySeeds, zSeeds, distance)

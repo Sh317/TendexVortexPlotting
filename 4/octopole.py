@@ -19,7 +19,7 @@ class vect(Structure):
                 ('its', c_int)]
 
 #Value setup
-title, x0, y0, z0 = seed(4,10) # 0: Plane 1: Circular 2: Spherical 3: Helical 4: Random
+title, x0, y0, z0 = seed(4,5) # 0: Plane 1: Circular 2: Spherical 3: Helical 4: Random
 curve = {'x':[],'y':[],'z':[],'f':[],'m':[],'c':[],'lg':[]}
 
 #x0 = [-40.0]
@@ -28,16 +28,16 @@ curve = {'x':[],'y':[],'z':[],'f':[],'m':[],'c':[],'lg':[]}
 lim = 15
 
 seeds = len(x0)
-num_its = 2000
-delta_0 = 10e-5
-h0 = 10e-3
+num_its = 500
+delta_0 = 10e-6
+h0 = 10e-4
 safety = .9
-ending_tolerance = 1.0
+ending_tolerance = .4
 pos_color = 'red'
 neg_color = 'blue'
 icity = 0
-sepX = 0
-sepY = .1
+sepX = .00001
+sepY = .00001
 
 # load C++
 rka_iter = CDLL("./cppScripts/rka_iter_90").rka_iter_double
@@ -91,12 +91,12 @@ print(dt.now() - start)
 if color:
     pos_fig.colorbar(cm.ScalarMappable(cmap='jet', norm = pos_norm), ax=pos_ax, label = 'pos eigenvalue')
     neg_fig.colorbar(cm.ScalarMappable(cmap='jet', norm = neg_norm), ax=neg_ax, label = 'neg eigenvalue * -1')
-pos_ax.scatter([sepX,-sepX], [sepY,-sepY])
+#pos_ax.scatter([sepX,-sepX], [sepY,-sepY])
 pos_ax.set_xlim(-lim,lim)
 pos_ax.set_ylim(-lim,lim)
 pos_ax.set_title('Octopole. Positive EVals. x sep: %s y sep: %s, 90 degree difference' %(sepX, sepY))
 
-neg_ax.scatter([sepX,-sepX], [sepY,-sepY])
+#neg_ax.scatter([sepX,-sepX], [sepY,-sepY])
 neg_ax.set_xlim(-lim,lim)
 neg_ax.set_ylim(-lim,lim)
 neg_ax.set_title('Octopole. Negative EVals. x sep: %s y sep: %s, 90 degree difference' %(sepX, sepY))

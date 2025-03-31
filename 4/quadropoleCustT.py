@@ -19,7 +19,7 @@ title, x0, y0, z0 = seed(4,10) # 0: Plane 1: Circular 2: Spherical 3: Helical 4:
 
 curve = {'x':[],'y':[],'z':[],'m':[],'c':[]} # Base dict
 seeds = len(x0)
-num_its = 1000 # Iterations per seed point
+num_its = 800 # Iterations per seed point
 lim = 15 # x y bounds for plot
 delta_0 = 10e-5 # Min deviation from next step
 h0 = 10e-3 #Starting step size
@@ -47,10 +47,12 @@ pos_cmap = mcolors.LinearSegmentedColormap.from_list('pos', [('lightsteelblue'),
 neg_cmap = mcolors.LinearSegmentedColormap.from_list('pos', [('mistyrose'), ('darkred')], N=100)
 blank_pos_cmap = mcolors.LinearSegmentedColormap.from_list('pos', [('blue'), ('blue')], N=1)
 blank_neg_cmap = mcolors.LinearSegmentedColormap.from_list('pos', [('red'), ('red')], N=1)
-pos_norm = mcolors.Normalize(vmin=0, vmax=80)
-neg_norm = mcolors.Normalize(vmin=0, vmax=80)
+pos_norm = mcolors.LogNorm(vmin=10e-5, vmax=10e2)
+neg_norm = mcolors.LogNorm(vmin=10e-5, vmax=10e2)
 pos_fig, pos_ax = plt.subplots(1)
 neg_fig, neg_ax = plt.subplots(1)
+
+
 if color:
     pos_fig.colorbar(cm.ScalarMappable(cmap='jet', norm = pos_norm), ax=pos_ax, label = 'pos eigenvalue')
     neg_fig.colorbar(cm.ScalarMappable(cmap='jet', norm = neg_norm), ax=neg_ax, label = 'neg eigenvalue * -1')
@@ -89,14 +91,14 @@ for sepX in [.1,2,6,10]:
 
         print(dt.now() - start)
 
-        pos_ax.scatter([-sepX,0], [-sepY,0])
+        #pos_ax.scatter([-sepX,0], [-sepY,0])
         pos_ax.set_xlim(-lim,lim)
         pos_ax.set_ylim(-lim,lim)
-        pos_ax.set_title('Positive EVals. 2 Quadropole. x sep: %s y sep: %s. %s*pi radian difference' %(sepX, sepY, t))
-        neg_ax.scatter([-sepX,0], [-sepY,0])
+        pos_ax.set_title('Pos EVals. 2 Quadropole. x sep: %s y sep: %s. %s*pi radian' %(sepX, sepY, t))
+        #neg_ax.scatter([-sepX,0], [-sepY,0])
         neg_ax.set_xlim(-lim,lim)
         neg_ax.set_ylim(-lim,lim)
-        neg_ax.set_title('Negative EVals. 2 Quadropole. x sep: %s y sep: %s. %s*pi radian difference' %(sepX, sepY, t))
+        neg_ax.set_title('Neg EVals. 2 Quadropole. x sep: %s y sep: %s. %s*pi radian' %(sepX, sepY, t))
 
         title = '(pi* ' + str(t) + 'S:' + str(sepX) + ')'
         print(title)
